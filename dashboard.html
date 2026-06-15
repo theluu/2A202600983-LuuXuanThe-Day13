@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 13 · Observability Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0e14;--panel:#111824;--panel2:#0f1620;--line:#1d2a3a;
+    --ink:#cfe3f2;--dim:#6f8aa3;--green:#3ddc97;--cyan:#36d0e0;--amber:#ffb454;--red:#ff5f7e;--violet:#9d8cff;
+    --mono:'JetBrains Mono',monospace;--disp:'Chakra Petch',sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);font-family:var(--mono);-webkit-font-smoothing:antialiased}
+  body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+    background:radial-gradient(900px 600px at 10% -10%, rgba(54,208,224,.08), transparent 60%),
+      radial-gradient(900px 600px at 100% 0%, rgba(157,140,255,.07), transparent 55%)}
+  .wrap{position:relative;z-index:1;max-width:1280px;margin:0 auto;padding:0 22px}
+
+  header{padding:26px 0 18px;display:flex;align-items:center;gap:18px;flex-wrap:wrap;border-bottom:1px solid var(--line)}
+  .brand{font-family:var(--disp);font-weight:700;font-size:1.2rem}
+  .brand b{color:var(--cyan)}
+  .sub{font-size:.74rem;color:var(--dim);letter-spacing:.04em}
+  .ctrls{margin-left:auto;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .pill{font-size:.72rem;color:var(--dim);border:1px solid var(--line);background:var(--panel);padding:.45em .9em;border-radius:100px}
+  .pill b{color:var(--ink)}
+  .live{display:inline-flex;align-items:center;gap:.5em;color:var(--green)}
+  .live .d{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 .5em var(--green);animation:pulse 1.6s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+  .off .d{background:var(--red);box-shadow:0 0 .5em var(--red);animation:none}
+  .off{color:var(--red)}
+  button{font-family:var(--mono);font-size:.72rem;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:.5em .9em;cursor:pointer;transition:.2s}
+  button:hover{border-color:var(--cyan);color:var(--cyan)}
+
+  .grid{display:grid;grid-template-columns:repeat(6,1fr);gap:16px;padding:22px 0 60px}
+  .panel{grid-column:span 2;border:1px solid var(--line);border-radius:14px;background:linear-gradient(180deg,var(--panel),var(--panel2));padding:18px;min-height:200px;display:flex;flex-direction:column}
+  @media(max-width:980px){.grid{grid-template-columns:1fr 1fr}.panel{grid-column:span 1}}
+  @media(max-width:620px){.grid{grid-template-columns:1fr}}
+  .ptop{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:4px}
+  .ptitle{font-family:var(--disp);font-weight:600;font-size:.96rem}
+  .punit{font-size:.66rem;color:var(--dim);letter-spacing:.1em;text-transform:uppercase}
+  .pslo{font-size:.66rem;color:var(--amber)}
+  .pbig{font-family:var(--disp);font-weight:700;font-size:2.1rem;line-height:1.1;margin:6px 0 2px}
+  .pbig small{font-size:.9rem;color:var(--dim);font-weight:500}
+  .psub{font-size:.74rem;color:var(--dim)}
+  canvas{width:100%;flex:1;min-height:96px;margin-top:8px}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px;font-size:.7rem;color:var(--dim)}
+  .legend i{display:inline-block;width:10px;height:3px;border-radius:2px;vertical-align:middle;margin-right:5px}
+  .brk{margin-top:10px;font-size:.74rem}
+  .brk .r{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px dashed var(--line)}
+  .ok{color:var(--green)} .warn{color:var(--amber)} .bad{color:var(--red)}
+  .note{font-size:.72rem;color:var(--dim);padding:8px 0 30px;text-align:center}
+  .gaugewrap{position:relative;display:flex;align-items:center;justify-content:center;flex:1}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <div class="brand">DAY13 · <b>OBSERVABILITY</b> DASHBOARD</div>
+      <div class="sub">Lưu Xuân Thế · 2A202600983 · Layer-2 · time range 1h · auto-refresh 15s</div>
+    </div>
+    <div class="ctrls">
+      <span class="pill">source <b id="src">/metrics</b></span>
+      <span class="pill">cập nhật <b id="ts">—</b></span>
+      <span class="pill"><span class="live off" id="status"><span class="d"></span><span id="statustxt">đang kết nối…</span></span></span>
+      <button id="refresh">↻ Làm mới ngay</button>
+    </div>
+  </header>
+
+  <div class="grid">
+    <!-- 1 Latency -->
+    <div class="panel">
+      <div class="ptop"><span class="ptitle">1 · Latency</span><span class="punit">ms</span></div>
+      <span class="pslo">SLO · P95 &lt; 3000ms</span>
+      <div class="pbig"><span id="p95">—</span><small> ms p95</small></div>
+      <div class="psub">p50 <b id="p50">—</b> · p99 <b id="p99">—</b></div>
+      <canvas id="cLat" height="120"></canvas>
+      <div class="legend"><span><i style="background:#3ddc97"></i>P50</span><span><i style="background:#36d0e0"></i>P95</span><span><i style="background:#9d8cff"></i>P99</span><span><i style="background:#ffb454"></i>SLO</span></div>
+    </div>
+
+    <!-- 2 Traffic -->
+    <div class="panel">
+      <div class="ptop"><span class="ptitle">2 · Traffic</span><span class="punit">requests · qps</span></div>
+      <span class="pslo">tổng số request đã phục vụ</span>
+      <div class="pbig"><span id="traffic">—</span><small> reqs</small></div>
+      <div class="psub">QPS hiện tại <b id="qps">0.0</b> /s</div>
+      <canvas id="cTraffic" height="120"></canvas>
+      <div class="legend"><span><i style="background:#36d0e0"></i>requests/khoảng</span></div>
+    </div>
+
+    <!-- 3 Error rate -->
+    <div class="panel">
+      <div class="ptop"><span class="ptitle">3 · Error rate</span><span class="punit">%</span></div>
+      <span class="pslo">SLO · &lt; 2%</span>
+      <div class="pbig"><span id="errpct">—</span><small> %</small></div>
+      <div class="psub">tổng lỗi <b id="errtotal">0</b> / <span id="errtraffic">0</span> req</div>
+      <div class="brk" id="errbrk"><div class="r"><span class="ok">Không có lỗi</span><span>0</span></div></div>
+      <canvas id="cErr" height="80"></canvas>
+      <div class="legend"><span><i style="background:#ff5f7e"></i>error %</span><span><i style="background:#ffb454"></i>SLO 2%</span></div>
+    </div>
+
+    <!-- 4 Cost -->
+    <div class="panel">
+      <div class="ptop"><span class="ptitle">4 · Cost over time</span><span class="punit">usd</span></div>
+      <span class="pslo">SLO · &lt; $2.5 / ngày</span>
+      <div class="pbig">$<span id="cost">—</span><small> tổng</small></div>
+      <div class="psub">trung bình <b>$<span id="avgcost">—</span></b>/req</div>
+      <canvas id="cCost" height="120"></canvas>
+      <div class="legend"><span><i style="background:#3ddc97"></i>cost tích lũy ($)</span></div>
+    </div>
+
+    <!-- 5 Tokens -->
+    <div class="panel">
+      <div class="ptop"><span class="ptitle">5 · Tokens in / out</span><span class="punit">tokens</span></div>
+      <span class="pslo">khối lượng xử lý của LLM</span>
+      <div class="pbig"><span id="tokout">—</span><small> out</small></div>
+      <div class="psub">in <b id="tokin">—</b> · tỉ lệ out/in <b id="tokratio">—</b>×</div>
+      <canvas id="cTok" height="120"></canvas>
+      <div class="legend"><span><i style="background:#36d0e0"></i>tokens_in</span><span><i style="background:#9d8cff"></i>tokens_out</span></div>
+    </div>
+
+    <!-- 6 Quality -->
+    <div class="panel">
+      <div class="ptop"><span class="ptitle">6 · Quality proxy</span><span class="punit">score 0–1</span></div>
+      <span class="pslo">SLO · &gt; 0.75</span>
+      <div class="gaugewrap"><canvas id="cQual" height="150"></canvas></div>
+      <div class="psub" style="text-align:center">heuristic quality_avg</div>
+    </div>
+  </div>
+
+  <div class="note">
+    Dashboard đọc trực tiếp từ <code>http://127.0.0.1:8013/metrics</code>. Đường biểu diễn được tích lũy trong trình duyệt mỗi 15s.
+    Sinh thêm dữ liệu: <code>python scripts/load_test.py --concurrency 5</code>. Thử sự cố: <code>python scripts/inject_incident.py --scenario rag_slow</code>.
+  </div>
+</div>
+
+<script>
+// thử same-origin (khi mở qua scripts/serve_dashboard.py) rồi tới cổng API trực tiếp
+const API_ENDPOINTS = ["/metrics", "http://127.0.0.1:8013/metrics"];
+// fallback snapshot (số liệu đo thật 20 req sạch) nếu server tắt
+const FALLBACK = {traffic:20,latency_p50:153,latency_p95:155,latency_p99:155,avg_cost_usd:0.002,total_cost_usd:0.039,tokens_in_total:680,tokens_out_total:2466,error_breakdown:{},quality_avg:0.88};
+const SLO = {p95:3000, err:2, costDay:2.5, qual:0.75};
+const MAXPTS = 40;
+const hist = {lat50:[],lat95:[],lat99:[],traffic:[],err:[],cost:[],tin:[],tout:[],reqDelta:[]};
+let prevTraffic = null, prevTime = null;
+
+function px(){return window.devicePixelRatio||1;}
+function setup(cv){const r=cv.getBoundingClientRect();const d=px();cv.width=r.width*d;cv.height=r.height*d;const x=cv.getContext('2d');x.setTransform(d,0,0,d,0,0);return {x,w:r.width,h:r.height};}
+function niceMax(v,floor){v=Math.max(v,floor||0);if(v<=0)return 1;const p=Math.pow(10,Math.floor(Math.log10(v)));const n=v/p;let m=n<=1?1:n<=2?2:n<=5?5:10;return m*p;}
+
+function line(cv, series, opts){
+  opts=opts||{};const {x,w,h}=setup(cv);const pad={l:6,r:6,t:8,b:6};
+  const all=[].concat(...series.map(s=>s.data)).filter(v=>v!=null);
+  let mx=opts.max!=null?opts.max:niceMax(Math.max(0,...all)*1.25,opts.floor||1);
+  if(opts.sloMax!=null) mx=Math.max(mx,opts.sloMax);
+  const W=w-pad.l-pad.r,H=h-pad.t-pad.b;
+  // grid
+  x.strokeStyle="rgba(255,255,255,.05)";x.lineWidth=1;
+  for(let i=0;i<=3;i++){const y=pad.t+H*i/3;x.beginPath();x.moveTo(pad.l,y);x.lineTo(w-pad.r,y);x.stroke();}
+  // SLO line
+  if(opts.slo!=null && opts.slo<=mx){const y=pad.t+H*(1-opts.slo/mx);x.strokeStyle="rgba(255,180,84,.7)";x.setLineDash([5,4]);x.beginPath();x.moveTo(pad.l,y);x.lineTo(w-pad.r,y);x.stroke();x.setLineDash([]);}
+  series.forEach(s=>{
+    const d=s.data;if(d.length<1)return;
+    const xstep=d.length>1?W/(d.length-1):0;
+    if(s.fill){x.beginPath();x.moveTo(pad.l,pad.t+H);d.forEach((v,i)=>{const X=pad.l+xstep*i,Y=pad.t+H*(1-(v||0)/mx);x.lineTo(X,Y);});x.lineTo(pad.l+xstep*(d.length-1),pad.t+H);x.closePath();const g=x.createLinearGradient(0,pad.t,0,pad.t+H);g.addColorStop(0,s.fill);g.addColorStop(1,"transparent");x.fillStyle=g;x.fill();}
+    x.beginPath();d.forEach((v,i)=>{const X=pad.l+xstep*i,Y=pad.t+H*(1-(v||0)/mx);i?x.lineTo(X,Y):x.moveTo(X,Y);});
+    x.strokeStyle=s.color;x.lineWidth=2;x.lineJoin="round";x.stroke();
+    if(d.length){const v=d[d.length-1],X=pad.l+xstep*(d.length-1),Y=pad.t+H*(1-(v||0)/mx);x.fillStyle=s.color;x.beginPath();x.arc(X,Y,3,0,7);x.fill();}
+  });
+}
+function bars(cv, data, color, slo){
+  const {x,w,h}=setup(cv);const pad=6;const W=w-pad*2,H=h-pad*2;
+  const mx=niceMax(Math.max(slo||0,...data)*1.2,slo?slo*1.2:1);
+  if(slo!=null){const y=pad+H*(1-slo/mx);x.strokeStyle="rgba(255,180,84,.7)";x.setLineDash([5,4]);x.beginPath();x.moveTo(pad,y);x.lineTo(w-pad,y);x.stroke();x.setLineDash([]);}
+  const bw=Math.max(2,W/Math.max(data.length,1)-2);
+  data.forEach((v,i)=>{const bh=H*(v||0)/mx;const X=pad+(W/Math.max(data.length,1))*i;x.fillStyle=color;x.fillRect(X,pad+H-bh,bw,bh);});
+}
+function gauge(cv,val,slo){
+  const {x,w,h}=setup(cv);const cx=w/2,cy=h*0.92,r=Math.min(w,h*1.6)/2-10;
+  x.lineWidth=14;x.lineCap="round";
+  x.strokeStyle="rgba(255,255,255,.07)";x.beginPath();x.arc(cx,cy,r,Math.PI,2*Math.PI);x.stroke();
+  const col=val>=slo?"#3ddc97":val>=slo*0.85?"#ffb454":"#ff5f7e";
+  x.strokeStyle=col;x.beginPath();x.arc(cx,cy,r,Math.PI,Math.PI+Math.PI*Math.min(1,val),false);x.stroke();
+  // SLO tick
+  const a=Math.PI+Math.PI*slo;x.strokeStyle="#ffb454";x.lineWidth=2;x.beginPath();x.moveTo(cx+(r-12)*Math.cos(a),cy+(r-12)*Math.sin(a));x.lineTo(cx+(r+10)*Math.cos(a),cy+(r+10)*Math.sin(a));x.stroke();
+  x.fillStyle=col;x.font="700 30px 'Chakra Petch',sans-serif";x.textAlign="center";x.fillText(val.toFixed(2),cx,cy-6);
+  x.fillStyle="#6f8aa3";x.font="11px 'JetBrains Mono'";x.fillText("SLO 0.75",cx,cy+16);
+}
+
+function push(arr,v){arr.push(v);if(arr.length>MAXPTS)arr.shift();}
+const $=id=>document.getElementById(id);
+
+function render(m, live){
+  const now=Date.now();
+  // deltas
+  let reqDelta=0,qps=0;
+  if(prevTraffic!=null){reqDelta=Math.max(0,m.traffic-prevTraffic);const dt=(now-prevTime)/1000;qps=dt>0?reqDelta/dt:0;}
+  prevTraffic=m.traffic;prevTime=now;
+  const errTotal=Object.values(m.error_breakdown||{}).reduce((a,b)=>a+b,0);
+  const errPct=m.traffic?(errTotal/m.traffic*100):0;
+
+  push(hist.lat50,m.latency_p50);push(hist.lat95,m.latency_p95);push(hist.lat99,m.latency_p99);
+  push(hist.traffic,m.traffic);push(hist.reqDelta,reqDelta);push(hist.err,errPct);
+  push(hist.cost,m.total_cost_usd);push(hist.tin,m.tokens_in_total);push(hist.tout,m.tokens_out_total);
+
+  // 1 latency
+  $('p95').textContent=Math.round(m.latency_p95);$('p50').textContent=Math.round(m.latency_p50);$('p99').textContent=Math.round(m.latency_p99);
+  $('p95').className=m.latency_p95<SLO.p95?'ok':'bad';
+  line($('cLat'),[{data:hist.lat50,color:'#3ddc97'},{data:hist.lat95,color:'#36d0e0'},{data:hist.lat99,color:'#9d8cff'}],{slo:SLO.p95,sloMax:SLO.p95});
+  // 2 traffic
+  $('traffic').textContent=m.traffic;$('qps').textContent=qps.toFixed(1);
+  bars($('cTraffic'),hist.reqDelta,'#36d0e0');
+  // 3 error
+  $('errpct').textContent=errPct.toFixed(1);$('errpct').className=errPct<SLO.err?'ok':'bad';
+  $('errtotal').textContent=errTotal;$('errtraffic').textContent=m.traffic;
+  const brk=$('errbrk');
+  if(errTotal===0){brk.innerHTML='<div class="r"><span class="ok">✓ Không có lỗi</span><span>0</span></div>';}
+  else{brk.innerHTML=Object.entries(m.error_breakdown).map(([k,v])=>`<div class="r"><span class="bad">${k}</span><span>${v}</span></div>`).join('');}
+  line($('cErr'),[{data:hist.err,color:'#ff5f7e',fill:'rgba(255,95,126,.25)'}],{slo:SLO.err,sloMax:SLO.err,floor:SLO.err});
+  // 4 cost
+  $('cost').textContent=(m.total_cost_usd||0).toFixed(4);$('avgcost').textContent=(m.avg_cost_usd||0).toFixed(4);
+  line($('cCost'),[{data:hist.cost,color:'#3ddc97',fill:'rgba(61,220,151,.22)'}],{});
+  // 5 tokens
+  $('tokout').textContent=m.tokens_out_total;$('tokin').textContent=m.tokens_in_total;
+  $('tokratio').textContent=m.tokens_in_total?(m.tokens_out_total/m.tokens_in_total).toFixed(1):'—';
+  line($('cTok'),[{data:hist.tin,color:'#36d0e0',fill:'rgba(54,208,224,.18)'},{data:hist.tout,color:'#9d8cff',fill:'rgba(157,140,255,.18)'}],{});
+  // 6 quality
+  gauge($('cQual'),m.quality_avg||0,SLO.qual);
+
+  $('ts').textContent=new Date().toLocaleTimeString('vi-VN');
+  const st=$('status'),tx=$('statustxt');
+  if(live){st.className='live';tx.textContent='LIVE';$('src').textContent='/metrics (live)';}
+  else{st.className='live off';tx.textContent='OFFLINE · fallback';$('src').textContent='snapshot nhúng';}
+}
+
+async function tick(){
+  for(const url of API_ENDPOINTS){
+    try{
+      const r=await fetch(url,{cache:'no-store'});
+      if(!r.ok) continue;
+      render(await r.json(), true);
+      return;
+    }catch(e){/* try next */}
+  }
+  render(FALLBACK, false);
+}
+$('refresh').onclick=tick;
+tick();
+setInterval(tick,15000);
+window.addEventListener('resize',()=>{ if(prevTraffic!=null) tick(); });
+</script>
+</body>
+</html>

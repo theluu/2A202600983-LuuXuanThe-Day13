@@ -1,13 +1,15 @@
 import argparse
 import concurrent.futures
 import json
+import os
 import time
 from pathlib import Path
 
 import httpx
 
-BASE_URL = "http://127.0.0.1:8000"
+# Cổng lấy từ --port hoặc env LAB_PORT, mặc định 8000.
 QUERIES = Path("data/sample_queries.jsonl")
+BASE_URL = f"http://127.0.0.1:{os.getenv('LAB_PORT', '8000')}"
 
 
 def send_request(client: httpx.Client, payload: dict) -> None:
@@ -23,7 +25,13 @@ def send_request(client: httpx.Client, payload: dict) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--concurrency", type=int, default=1, help="Number of concurrent requests")
+    parser.add_argument("--port", type=int, default=int(os.getenv("LAB_PORT", "8000")),
+                        help="Cổng app (mặc định env LAB_PORT hoặc 8000)")
     args = parser.parse_args()
+
+    global BASE_URL
+    BASE_URL = f"http://127.0.0.1:{args.port}"
+    print(f"-> {BASE_URL}/chat")
 
     lines = [line for line in QUERIES.read_text(encoding="utf-8").splitlines() if line.strip()]
     

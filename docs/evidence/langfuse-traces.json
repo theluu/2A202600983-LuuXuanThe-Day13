@@ -1,0 +1,186 @@
+{
+  "host": "https://cloud.langfuse.com",
+  "totalItems": 27,
+  "sample": [
+    {
+      "id": "40f73cc2b0d7db51c70601b6f7340c21",
+      "name": "run",
+      "sessionId": "insproc-11",
+      "userId": "92ec86fa8892",
+      "tags": [
+        "claude-sonnet-4-5",
+        "lab",
+        "qa"
+      ],
+      "timestamp": "2026-06-15T08:49:09.865Z"
+    },
+    {
+      "id": "f0b7388050fa2f1b0352d6bbc6042439",
+      "name": "run",
+      "sessionId": "insproc-10",
+      "userId": "105a9cef3903",
+      "tags": [
+        "claude-sonnet-4-5",
+        "lab",
+        "qa"
+      ],
+      "timestamp": "2026-06-15T08:49:09.710Z"
+    },
+    {
+      "id": "6af9b6b4cc96e569566d09579c17e3f0",
+      "name": "run",
+      "sessionId": "insproc-9",
+      "userId": "553f26abeeeb",
+      "tags": [
+        "claude-sonnet-4-5",
+        "lab",
+        "qa"
+      ],
+      "timestamp": "2026-06-15T08:49:09.554Z"
+    },
+    {
+      "id": "c49e00ed0c0c6f8866cf3d1763b3767e",
+      "name": "run",
+      "sessionId": "insproc-8",
+      "userId": "c89951a24c6c",
+      "tags": [
+        "claude-sonnet-4-5",
+        "lab",
+        "qa"
+      ],
+      "timestamp": "2026-06-15T08:49:09.401Z"
+    },
+    {
+      "id": "67d52b89b04f62fc9cfc1ae87505de43",
+      "name": "run",
+      "sessionId": "insproc-7",
+      "userId": "e8180000fa67",
+      "tags": [
+        "claude-sonnet-4-5",
+        "lab",
+        "qa"
+      ],
+      "timestamp": "2026-06-15T08:49:09.245Z"
+    },
+    {
+      "id": "7b2ef8889b1d44e1bb2039be7a7f8590",
+      "name": "run",
+      "sessionId": "insproc-6",
+      "userId": "71ea5f5b9621",
+      "tags": [
+        "claude-sonnet-4-5",
+        "lab",
+        "qa"
+      ],
+      "timestamp": "2026-06-15T08:49:09.091Z"
+    },
+    {
+      "id": "ea8b8d30df5b26d06df7dbeb402008a1",
+      "name": "run",
+      "sessionId": "insproc-5",
+      "userId": "5850a03e801f",
+      "tags": [
+        "claude-sonnet-4-5",
+        "lab",
+        "qa"
+      ],
+      "timestamp": "2026-06-15T08:49:08.938Z"
+    },
+    {
+      "id": "5e0c856ab29ffdc84af12ec9ef7aee77",
+      "name": "run",
+      "sessionId": "insproc-4",
+      "userId": "e9c981a47998",
+      "tags": [
+        "claude-sonnet-4-5",
+        "lab",
+        "qa"
+      ],
+      "timestamp": "2026-06-15T08:49:08.785Z"
+    },
+    {
+      "id": "5e4d0cd762954e7d686d2199a16467d8",
+      "name": "run",
+      "sessionId": "insproc-3",
+      "userId": "011e39efe225",
+      "tags": [
+        "claude-sonnet-4-5",
+        "lab",
+        "qa"
+      ],
+      "timestamp": "2026-06-15T08:49:08.629Z"
+    },
+    {
+      "id": "680d41ca26f14fa5e7e0afb0e81ab5b9",
+      "name": "run",
+      "sessionId": "insproc-2",
+      "userId": "6ca202c88e54",
+      "tags": [
+        "claude-sonnet-4-5",
+        "lab",
+        "qa"
+      ],
+      "timestamp": "2026-06-15T08:49:08.474Z"
+    },
+    {
+      "id": "e23b2de012044335a03537743a8a357f",
+      "name": "run",
+      "sessionId": "insproc-1",
+      "userId": "bb82030dbc2b",
+      "tags": [
+        "claude-sonnet-4-5",
+        "lab",
+        "qa"
+      ],
+      "timestamp": "2026-06-15T08:49:08.320Z"
+    },
+    {
+      "id": "91ea717c47ee4f7971f779752946ddc6",
+      "name": "run",
+      "sessionId": "insproc-0",
+      "userId": "9dc02223da42",
+      "tags": [
+        "claude-sonnet-4-5",
+        "lab",
+        "qa"
+      ],
+      "timestamp": "2026-06-15T08:49:08.167Z"
+    },
+    {
+      "id": "f5d1c9fe98769106fbbeaf6603e498d3",
+      "name": "run",
+      "sessionId": "trace-demo-14",
+      "userId": "64f6ec689229",
+      "tags": [
+        "claude-sonnet-4-5",
+        "lab",
+        "qa"
+      ],
+      "timestamp": "2026-06-15T08:47:55.453Z"
+    },
+    {
+      "id": "fa7ed9989196183e4adbccec5c5bb3bd",
+      "name": "run",
+      "sessionId": "trace-demo-13",
+      "userId": "75af07890985",
+      "tags": [
+        "claude-sonnet-4-5",
+        "lab",
+        "qa"
+      ],
+      "timestamp": "2026-06-15T08:47:55.288Z"
+    },
+    {
+      "id": "cde523c6e4ee77834bbb90155710c979",
+      "name": "run",
+      "sessionId": "trace-demo-12",
+      "userId": "97ce842ec69d",
+      "tags": [
+        "claude-sonnet-4-5",
+        "lab",
+        "summary"
+      ],
+      "timestamp": "2026-06-15T08:47:55.124Z"
+    }
+  ]
+}
