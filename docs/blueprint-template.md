@@ -4,7 +4,7 @@
 
 ## 1. Team Metadata
 - [GROUP_NAME]: Cá nhân — Lưu Xuân Thế (MSSV 2A202600983)
-- [REPO_URL]: <!-- TODO: dán URL repo GitHub của bạn -->
+- [REPO_URL]: https://github.com/theluu/2A202600983-LuuXuanThe-Day13
 - [MEMBERS]:
   - Member A: Lưu Xuân Thế | Role: Logging & PII
   - Member B: Lưu Xuân Thế | Role: Tracing & Enrichment
